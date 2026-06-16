@@ -51,88 +51,79 @@
       </div>
 
       <!-- Tabla -->
-      <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <table class="w-full text-left">
-          <thead class="bg-gray-200 text-gray-700">
-            <tr>
-              <th class="px-6 py-3 text-sm font-semibold">ID</th>
-              <th class="px-6 py-3 text-sm font-semibold">Nombre</th>
-              <th class="px-6 py-3 text-sm font-semibold">Precio</th>
-              <th class="px-6 py-3 text-sm font-semibold text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="producto in productosPaginados" :key="producto.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 text-sm">{{ producto.id }}</td>
-              <td class="px-6 py-4 text-sm">
-                <span v-if="editando !== producto.id">{{ producto.nombre }}</span>
-                <input v-else v-model="editProducto.nombre" class="border px-2 py-1 rounded" />
-              </td>
-              <td class="px-6 py-4 text-sm">
-                <span v-if="editando !== producto.id">${{ producto.precio }}</span>
-                <input v-else v-model.number="editProducto.precio" type="number" class="border px-2 py-1 rounded w-24" />
-              </td>
-              <td class="px-6 py-4 text-sm text-center space-x-2">
-                <!-- Boton Editar / Guardar -->
-                <button
-                  v-if="editando !== producto.id"
-                  @click="editarProducto(producto)"
-                  class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
-                >
-                  Editar
-                </button>
-                <button
-                  v-else
-                  @click="guardarEdicion(producto.id)"
-                  class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                >
-                  Guardar
-                </button>
-
-                <!-- Boton Eliminar -->
-                <button
-                  @click="eliminarProducto(producto.id)"
-                  class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                >
-                  Eliminar
-                </button>
-
-                <!-- Boton Cancelar (solo en edicion) -->
-                <button
-                  v-if="editando === producto.id"
-                  @click="cancelarEdicion"
-                  class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
-                >
-                  Cancelar
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table> 
-        
-        <!-- Paginacion -->
-        <div class="flex justify-between items-center mt-4 px-6 py-3 bg-gray-50">
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+  <table class="w-full text-left">
+    <thead class="bg-gray-200 text-gray-700">
+      <tr>
+        <th class="px-6 py-3 text-sm font-semibold">Nombre</th>
+        <th class="px-6 py-3 text-sm font-semibold">Precio</th>
+        <th class="px-6 py-3 text-sm font-semibold text-center">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <tr v-for="producto in productosPaginados" :key="producto.id" class="hover:bg-gray-50">
+        <td class="px-6 py-4 text-sm">
+          <span v-if="editando !== producto.id">{{ producto.nombre }}</span>
+          <input v-else v-model="editProducto.nombre" class="border px-2 py-1 rounded" />
+        </td>
+        <td class="px-6 py-4 text-sm">
+          <span v-if="editando !== producto.id">${{ producto.precio }}</span>
+          <input v-else v-model.number="editProducto.precio" type="number" class="border px-2 py-1 rounded w-24" />
+        </td>
+        <td class="px-6 py-4 text-sm text-center space-x-2">
           <button
-            @click="paginaAnterior"
-            :disabled="paginaActual === 1"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+            v-if="editando !== producto.id"
+            @click="editarProducto(producto)"
+            class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
           >
-            Anterior
+            Editar
           </button>
-          
-          <span class="text-gray-600">
-            Pagina {{ paginaActual }} de {{ totalPaginas }}
-          </span>
-          
           <button
-            @click="paginaSiguiente"
-            :disabled="paginaActual === totalPaginas"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+            v-else
+            @click="guardarEdicion(producto.id)"
+            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
-            Siguiente
+            Guardar
           </button>
-        </div>
-      </div>
+          <button
+            @click="eliminarProducto(producto.id)"
+            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+          >
+            Eliminar
+          </button>
+          <button
+            v-if="editando === producto.id"
+            @click="cancelarEdicion"
+            class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+          >
+            Cancelar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <!-- Paginacion -->
+  <div class="flex justify-between items-center mt-4 px-6 py-3 bg-gray-50">
+    <button
+      @click="paginaAnterior"
+      :disabled="paginaActual === 1"
+      class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+    >
+      Anterior
+    </button>
+    <span class="text-gray-600">
+      Pagina {{ paginaActual }} de {{ totalPaginas }}
+    </span>
+    <button
+      @click="paginaSiguiente"
+      :disabled="paginaActual === totalPaginas"
+      class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+    >
+      Siguiente
+    </button>
+  </div>
+</div>
     </div>
   </div>
 </template>
