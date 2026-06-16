@@ -1,31 +1,52 @@
 <template>
   <div class="min-h-screen bg-gray-100 py-8 px-4">
     <div class="max-w-5xl mx-auto">
-      <!-- Título -->
+      <!-- Titulo -->
       <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
         Productos
       </h1>
 
-      <!-- Formulario -->
+      <!-- Buscador -->
+      <div class="mb-4">
+        <input
+          v-model="filtro"
+          type="text"
+          placeholder="Buscar producto por nombre..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+        />
+      </div>
+
+      <!-- Formulario mejorado -->
       <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">Agregar nuevo producto</h2>
         <div class="flex flex-col sm:flex-row gap-4">
-          <input
-            v-model="nuevoProducto.nombre"
-            placeholder="Nombre del producto"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <input
-            v-model.number="nuevoProducto.precio"
-            placeholder="Precio"
-            type="number"
-            class="w-full sm:w-40 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <button
-            @click="agregarProducto"
-            class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition"
-          >
-            Agregar
-          </button>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-600 mb-1">Nombre</label>
+            <input
+              v-model="nuevoProducto.nombre"
+              placeholder="Ej: Laptop, Mouse, Teclado..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-600 mb-1">Precio (MXN)</label>
+            <input
+              v-model.number="nuevoProducto.precio"
+              placeholder="0.00"
+              type="number"
+              step="0.01"
+              min="0"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          <div class="flex items-end">
+            <button
+              @click="agregarProducto"
+              class="w-full sm:w-auto px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition"
+            >
+              Agregar producto
+            </button>
+          </div>
         </div>
       </div>
 
@@ -52,7 +73,7 @@
                 <input v-else v-model.number="editProducto.precio" type="number" class="border px-2 py-1 rounded w-24" />
               </td>
               <td class="px-6 py-4 text-sm text-center space-x-2">
-                <!-- Botón Editar / Guardar -->
+                <!-- Boton Editar / Guardar -->
                 <button
                   v-if="editando !== producto.id"
                   @click="editarProducto(producto)"
@@ -68,7 +89,7 @@
                   Guardar
                 </button>
 
-                <!-- Botón Eliminar -->
+                <!-- Boton Eliminar -->
                 <button
                   @click="eliminarProducto(producto.id)"
                   class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
@@ -76,7 +97,7 @@
                   Eliminar
                 </button>
 
-                <!-- Botón Cancelar (solo en edición) -->
+                <!-- Boton Cancelar (solo en edicion) -->
                 <button
                   v-if="editando === producto.id"
                   @click="cancelarEdicion"
@@ -88,34 +109,36 @@
             </tr>
           </tbody>
         </table> 
+        
+        <!-- Paginacion -->
         <div class="flex justify-between items-center mt-4 px-6 py-3 bg-gray-50">
-  <button
-    @click="paginaAnterior"
-    :disabled="paginaActual === 1"
-    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
-  >
-    Anterior
-  </button>
-  
-  <span class="text-gray-600">
-    Página {{ paginaActual }} de {{ totalPaginas }}
-  </span>
-  
-  <button
-    @click="paginaSiguiente"
-    :disabled="paginaActual === totalPaginas"
-    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
-  >
-    Siguiente
-  </button>
-</div>
+          <button
+            @click="paginaAnterior"
+            :disabled="paginaActual === 1"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+          >
+            Anterior
+          </button>
+          
+          <span class="text-gray-600">
+            Pagina {{ paginaActual }} de {{ totalPaginas }}
+          </span>
+          
+          <button
+            @click="paginaSiguiente"
+            :disabled="paginaActual === totalPaginas"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { toast } from 'vue3-toastify'
 
@@ -126,18 +149,37 @@ const editProducto = ref({ nombre: '', precio: 0 })
 
 const paginaActual = ref(1)
 const productosPorPagina = 5
+const filtro = ref('')
 
-const totalPaginas = computed(() => {
-  return Math.ceil(productos.value.length / productosPorPagina)
+// Productos filtrados por busqueda
+const productosFiltrados = computed(() => {
+  if (!filtro.value.trim()) {
+    return productos.value
+  }
+  const busqueda = filtro.value.toLowerCase().trim()
+  return productos.value.filter(p => 
+    p.nombre.toLowerCase().includes(busqueda)
+  )
 })
 
+// Total de paginas basado en productos filtrados
+const totalPaginas = computed(() => {
+  return Math.ceil(productosFiltrados.value.length / productosPorPagina)
+})
+
+// Productos paginados
 const productosPaginados = computed(() => {
   const inicio = (paginaActual.value - 1) * productosPorPagina
   const fin = inicio + productosPorPagina
-  return productos.value.slice(inicio, fin)
+  return productosFiltrados.value.slice(inicio, fin)
 })
 
 const API_URL = 'https://productos-backend-wcpx.onrender.com/productos'
+
+// Reiniciar a pagina 1 cuando se busca
+watch(filtro, () => {
+  paginaActual.value = 1
+})
 
 const paginaAnterior = () => {
   if (paginaActual.value > 1) {
@@ -151,10 +193,6 @@ const paginaSiguiente = () => {
   }
 }
 
-const irAPagina = (pagina) => {
-  paginaActual.value = pagina
-}
-
 const cargarProductos = async () => {
   try {
     const res = await axios.get(API_URL)
@@ -166,7 +204,7 @@ const cargarProductos = async () => {
 
 const agregarProducto = async () => {
   if (!nuevoProducto.value.nombre || nuevoProducto.value.precio <= 0) {
-    toast.error('Nombre y precio válido son obligatorios')
+    toast.error('Nombre y precio valido son obligatorios')
     return
   }
   try {
@@ -200,7 +238,7 @@ const cancelarEdicion = () => {
 }
 
 const eliminarProducto = async (id) => {
-  if (!confirm('¿Eliminar este producto?')) return
+  if (!confirm('Eliminar este producto?')) return
   try {
     await axios.delete(`${API_URL}/${id}`)
     await cargarProductos()
