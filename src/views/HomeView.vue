@@ -41,7 +41,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
-            <tr v-for="producto in productos" :key="producto.id" class="hover:bg-gray-50">
+            <tr v-for="producto in productosPaginados" :key="producto.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 text-sm">{{ producto.id }}</td>
               <td class="px-6 py-4 text-sm">
                 <span v-if="editando !== producto.id">{{ producto.nombre }}</span>
@@ -87,43 +87,95 @@
               </td>
             </tr>
           </tbody>
-        </table>
+        </table> 
+        <div class="flex justify-between items-center mt-4 px-6 py-3 bg-gray-50">
+  <button
+    @click="paginaAnterior"
+    :disabled="paginaActual === 1"
+    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+  >
+    Anterior
+  </button>
+  
+  <span class="text-gray-600">
+    Página {{ paginaActual }} de {{ totalPaginas }}
+  </span>
+  
+  <button
+    @click="paginaSiguiente"
+    :disabled="paginaActual === totalPaginas"
+    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition"
+  >
+    Siguiente
+  </button>
+</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { toast } from 'vue3-toastify'
 
 const productos = ref([])
 const nuevoProducto = ref({ nombre: '', precio: 0 })
 const editando = ref(null)
 const editProducto = ref({ nombre: '', precio: 0 })
 
+const paginaActual = ref(1)
+const productosPorPagina = 5
+
+const totalPaginas = computed(() => {
+  return Math.ceil(productos.value.length / productosPorPagina)
+})
+
+const productosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * productosPorPagina
+  const fin = inicio + productosPorPagina
+  return productos.value.slice(inicio, fin)
+})
+
 const API_URL = 'https://productos-backend-wcpx.onrender.com/productos'
+
+const paginaAnterior = () => {
+  if (paginaActual.value > 1) {
+    paginaActual.value--
+  }
+}
+
+const paginaSiguiente = () => {
+  if (paginaActual.value < totalPaginas.value) {
+    paginaActual.value++
+  }
+}
+
+const irAPagina = (pagina) => {
+  paginaActual.value = pagina
+}
 
 const cargarProductos = async () => {
   try {
     const res = await axios.get(API_URL)
     productos.value = res.data
   } catch (error) {
-    console.error('Error al cargar productos:', error)
+    toast.error('Error al cargar productos')
   }
 }
 
 const agregarProducto = async () => {
   if (!nuevoProducto.value.nombre || nuevoProducto.value.precio <= 0) {
-    alert('Nombre y precio válido son obligatorios')
+    toast.error('Nombre y precio válido son obligatorios')
     return
   }
   try {
     await axios.post(API_URL, nuevoProducto.value)
     nuevoProducto.value = { nombre: '', precio: 0 }
-    cargarProductos()
+    await cargarProductos()
+    toast.success('Producto agregado correctamente')
   } catch (error) {
-    console.error('Error al agregar producto:', error)
+    toast.error('Error al agregar producto')
   }
 }
 
@@ -136,9 +188,10 @@ const guardarEdicion = async (id) => {
   try {
     await axios.put(`${API_URL}/${id}`, editProducto.value)
     editando.value = null
-    cargarProductos()
+    await cargarProductos()
+    toast.success('Producto actualizado correctamente')
   } catch (error) {
-    console.error('Error al editar producto:', error)
+    toast.error('Error al editar producto')
   }
 }
 
@@ -150,9 +203,10 @@ const eliminarProducto = async (id) => {
   if (!confirm('¿Eliminar este producto?')) return
   try {
     await axios.delete(`${API_URL}/${id}`)
-    cargarProductos()
+    await cargarProductos()
+    toast.success('Producto eliminado correctamente')
   } catch (error) {
-    console.error('Error al eliminar producto:', error)
+    toast.error('Error al eliminar producto')
   }
 }
 
